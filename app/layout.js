@@ -1,25 +1,21 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Manrope, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import AppShell from "@/components/erp/AppShell";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const ui = Manrope({ variable: "--font-ui", subsets: ["latin"], display: "swap" });
+const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"], display: "swap" });
 
 export const metadata = {
-  title: "ERP Operations Suite",
-  description: "High-density enterprise resource dashboard",
+  title: "Meridian ERP",
+  description: "Enterprise operations suite",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body>{children}</body>
+    <html lang="en" className={`${ui.variable} ${mono.variable}`} data-scroll-behavior="smooth">
+      <body>
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   );
 }

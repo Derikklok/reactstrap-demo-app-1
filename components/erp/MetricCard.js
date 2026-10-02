@@ -1,30 +1,28 @@
-"use client";
-import { Card, CardBody } from "reactstrap";
+import Icon from "./Icon";
+import { Sparkline } from "./Charts";
 
-export default function MetricCard({ label, value, subtext, trend, trendValue }) {
-  const isPositive = trend === "up";
+/** tone: "blue" | "red" | "green" | "amber"; trend "up"/"down"; good = whether that direction is desirable */
+const ACCENT = { blue: "var(--blue-600)", red: "var(--red-600)", green: "var(--green-600)", amber: "var(--amber-600)" };
 
+export default function MetricCard({ label, value, subtext, trend, trendValue, good = true, tone = "blue", spark }) {
+  const sentiment = good ? "good" : "bad";
   return (
-    <Card className="erp-card h-100">
-      <CardBody className="d-flex flex-column justify-content-between p-2">
-        <div className="d-flex justify-content-between align-items-center mb-1">
-          <span className="text-secondary text-uppercase fw-semibold" style={{ fontSize: "0.68rem" }}>
-            {label}
+    <div className="erp-card metric" style={{ "--accent": ACCENT[tone] }}>
+      <div className="d-flex justify-content-between align-items-start">
+        <span className="metric-label">{label}</span>
+        {trendValue && (
+          <span className={`delta ${sentiment}`}>
+            <Icon name={trend === "up" ? "up" : "down"} size={12} stroke={2.6} />{trendValue}
           </span>
-          {trendValue && (
-            <span
-              className={`fw-semibold ${isPositive ? "text-success" : "text-danger"}`}
-              style={{ fontSize: "0.7rem" }}
-            >
-              {isPositive ? "▲" : "▼"} {trendValue}
-            </span>
-          )}
-        </div>
+        )}
+      </div>
+      <div className="d-flex justify-content-between align-items-end gap-2">
         <div>
-          <h5 className="mb-0 fw-bold">{value}</h5>
-          {subtext && <small className="text-muted" style={{ fontSize: "0.68rem" }}>{subtext}</small>}
+          <div className="metric-value num">{value}</div>
+          {subtext && <div className="metric-sub">{subtext}</div>}
         </div>
-      </CardBody>
-    </Card>
+        {spark && <Sparkline data={spark} color={ACCENT[tone]} />}
+      </div>
+    </div>
   );
 }

@@ -1,104 +1,149 @@
 "use client";
-
-import { Container, Row, Col, Card, CardHeader, CardBody } from "reactstrap";
+import { useMemo, useState } from "react";
+import { Row, Col } from "reactstrap";
+import PageHeader from "@/components/erp/PageHeader";
 import MetricCard from "@/components/erp/MetricCard";
+import Panel from "@/components/erp/Panel";
 import DenseToolbar from "@/components/erp/DenseToolbar";
-import DenseTable from "@/components/erp/DenseTable";
+import DataTable from "@/components/erp/DataTable";
+import StatusBadge from "@/components/erp/StatusBadge";
+import { AreaChart, DonutChart } from "@/components/erp/Charts";
 
-const DUMMY_ORDERS = [
-  { id: 1, poNumber: "PO-90214", supplier: "Acme Logistics", items: 42, amount: 18450, warehouse: "WH-East 01", date: "2026-03-28", status: "fulfilled" },
-  { id: 2, poNumber: "PO-90215", supplier: "Global Steel Co", items: 120, amount: 92300, warehouse: "WH-Central 04", date: "2026-03-29", status: "pending" },
-  { id: 3, poNumber: "PO-90216", supplier: "Apex Polymers", items: 15, amount: 4800, warehouse: "WH-East 01", date: "2026-03-29", status: "delayed" },
-  { id: 4, poNumber: "PO-90217", supplier: "Precision Gears", items: 85, amount: 33150, warehouse: "WH-West 02", date: "2026-03-30", status: "in_progress" },
-  { id: 5, poNumber: "PO-90218", supplier: "Delta Packaging", items: 210, amount: 6200, warehouse: "WH-East 01", date: "2026-03-30", status: "fulfilled" },
-  { id: 6, poNumber: "PO-90219", supplier: "Dynasty Micro", items: 34, amount: 14700, warehouse: "WH-Central 04", date: "2026-03-31", status: "pending" },
+const SEED = [
+  ["PO-90214", "Acme Logistics", 42, 18450, "WH-East 01", "2026-03-28", "fulfilled"],
+  ["PO-90215", "Global Steel Co", 120, 92300, "WH-Central 04", "2026-03-29", "pending"],
+  ["PO-90216", "Apex Polymers", 15, 4800, "WH-East 01", "2026-03-29", "delayed"],
+  ["PO-90217", "Precision Gears", 85, 33150, "WH-West 02", "2026-03-30", "in_progress"],
+  ["PO-90218", "Delta Packaging", 210, 6200, "WH-East 01", "2026-03-30", "fulfilled"],
+  ["PO-90219", "Dynasty Micro", 34, 14700, "WH-Central 04", "2026-03-31", "pending"],
+  ["PO-90220", "Northwind Metals", 64, 41800, "WH-West 02", "2026-04-01", "in_progress"],
+  ["PO-90221", "Helix Fasteners", 300, 9600, "WH-East 01", "2026-04-01", "draft"],
+  ["PO-90222", "Orion Electronics", 18, 57200, "WH-Central 04", "2026-04-02", "delayed"],
+  ["PO-90223", "Summit Chemicals", 52, 23900, "WH-West 02", "2026-04-02", "fulfilled"],
+  ["PO-90224", "Bluefin Freight", 9, 3100, "WH-East 01", "2026-04-03", "pending"],
+  ["PO-90225", "Crestline Tools", 77, 28450, "WH-Central 04", "2026-04-03", "in_progress"],
+];
+const ORDERS = SEED.map(([poNumber, supplier, items, amount, warehouse, date, status], i) => ({
+  id: i + 1, poNumber, supplier, items, amount, warehouse, date, status,
+}));
+
+const COLUMNS = [
+  { key: "poNumber", header: "PO number", sortable: true, render: (r) => <a href="#" className="row-link num">{r.poNumber}</a> },
+  { key: "supplier", header: "Supplier", sortable: true },
+  { key: "items", header: "SKUs", sortable: true, align: "right", render: (r) => <span className="num">{r.items}</span> },
+  { key: "amount", header: "Total", sortable: true, align: "right", render: (r) => <b className="num">${r.amount.toLocaleString("en-US")}</b> },
+  { key: "warehouse", header: "Warehouse", sortable: true, render: (r) => <span className="wh-tag mono">{r.warehouse}</span> },
+  { key: "date", header: "Order date", sortable: true, render: (r) => <span className="num text-secondary">{r.date}</span> },
+  { key: "status", header: "Status", sortable: true, render: (r) => <StatusBadge status={r.status} /> },
+  { key: "actions", header: "", align: "right", render: () => (
+    <div className="d-flex gap-1 justify-content-end">
+      <button className="btn btn-xs btn-ghost">Edit</button>
+      <button className="btn btn-xs btn-soft-danger">Void</button>
+    </div>
+  )},
+];
+
+const FEED = [
+  { c: "var(--green-600)", t: <><b>PO-90218</b> received at WH-East 01</>, when: "12 min ago" },
+  { c: "var(--red-600)", t: <><b>PO-90216</b> marked delayed by Apex Polymers</>, when: "34 min ago" },
+  { c: "var(--blue-600)", t: <><b>SKU-1029</b> reordered, +500 units</>, when: "1 hr ago" },
+  { c: "var(--amber-600)", t: <><b>PO-90215</b> waiting for finance sign-off</>, when: "2 hr ago" },
 ];
 
 export default function DashboardPage() {
+  const [q, setQ] = useState("");
+  const [wh, setWh] = useState("");
+  const [status, setStatus] = useState("");
+  const [orders, setOrders] = useState(ORDERS);
+
+  const filtered = useMemo(() => orders.filter((o) =>
+    (!q || `${o.poNumber} ${o.supplier} ${o.warehouse}`.toLowerCase().includes(q.toLowerCase())) &&
+    (!wh || o.warehouse === wh) && (!status || o.status === status)), [orders, q, wh, status]);
+
+  const exportCsv = () => {
+    const head = ["PO", "Supplier", "SKUs", "Total", "Warehouse", "Date", "Status"];
+    const lines = filtered.map((o) => [o.poNumber, o.supplier, o.items, o.amount, o.warehouse, o.date, o.status].join(","));
+    const url = URL.createObjectURL(new Blob([[head.join(","), ...lines].join("\n")], { type: "text/csv" }));
+    Object.assign(document.createElement("a"), { href: url, download: "purchase-orders.csv" }).click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <Container fluid className="p-2 p-md-3">
-      {/* Top Breadcrumb & Controls Header */}
-      <div className="d-flex justify-content-between align-items-center mb-2">
-        <div>
-          <h6 className="mb-0 fw-bold">Inventory & Purchase Orders</h6>
-          <small className="text-secondary">ERP Unit: Plant 04 (EMEA)</small>
-        </div>
-        <div className="text-secondary small">
-          Last Synced: <span className="fw-semibold text-dark">Just now</span>
-        </div>
-      </div>
+    <>
+      <PageHeader
+        title="Inventory & purchase orders"
+        crumbs={[{ label: "Operations", href: "/" }, { label: "Dashboard" }]}
+        actions={<span className="sync-chip"><i className="live-dot" />Synced just now · Plant 04 (EMEA)</span>}
+      />
 
-      {/* Row 1: Dense KPIs */}
-      <Row className="g-2 mb-2">
-        <Col xs={6} md={3}>
-          <MetricCard label="Open POs" value="48" trend="up" trendValue="+8%" subtext="12 require sign-off" />
+      <Row className="g-3 mb-3">
+        <Col xs={12} sm={6} xl={3}><MetricCard tone="blue" label="Open purchase orders" value="48" trend="up" trendValue="8%" subtext="12 need sign-off" spark={[22, 26, 25, 30, 34, 41, 48]} /></Col>
+        <Col xs={12} sm={6} xl={3}><MetricCard tone="green" label="Committed spend" value="$284.5k" trend="down" trendValue="3.1%" subtext="of $400k budget" spark={[330, 310, 305, 298, 292, 288, 284]} /></Col>
+        <Col xs={12} sm={6} xl={3}><MetricCard tone="amber" label="Pending receipts" value="16" trend="up" trendValue="2" good={false} subtext="Docks 3 and 4" spark={[9, 11, 10, 12, 14, 13, 16]} /></Col>
+        <Col xs={12} sm={6} xl={3}><MetricCard tone="red" label="Backorders" value="3" trend="down" trendValue="50%" subtext="Under SLA target" spark={[9, 8, 8, 6, 5, 4, 3]} /></Col>
+      </Row>
+
+      <Row className="g-3 mb-3">
+        <Col lg={8}>
+          <Panel title="Spend vs. receipts" subtitle="Last 7 months, in thousands of USD"
+            actions={<div className="legend"><span><i style={{ background: "var(--blue-600)" }} />Committed</span><span><i style={{ background: "var(--red-600)" }} />Received</span></div>}>
+            <AreaChart labels={["Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"]} series={[
+              { name: "Committed", color: "var(--blue-600)", values: [180, 210, 195, 260, 240, 275, 284] },
+              { name: "Received", color: "var(--red-600)", values: [150, 170, 185, 205, 215, 230, 241] },
+            ]} />
+          </Panel>
         </Col>
-        <Col xs={6} md={3}>
-          <MetricCard label="Committed Spend" value="$284.5k" trend="down" trendValue="-3.1%" subtext="Budget limit: $400k" />
-        </Col>
-        <Col xs={6} md={3}>
-          <MetricCard label="Pending Receipts" value="16" trend="up" trendValue="+2" subtext="Dock 3 & 4" />
-        </Col>
-        <Col xs={6} md={3}>
-          <MetricCard label="Backorders" value="3" trend="down" trendValue="-50%" subtext="Under SLA target" />
+        <Col lg={4}>
+          <Panel title="Order status" subtitle="All open and recent orders" className="h-100">
+            <div className="d-flex flex-column align-items-center gap-3">
+              <DonutChart centerValue="124" centerLabel="orders" segments={[
+                { label: "Fulfilled", value: 58, color: "var(--blue-600)" },
+                { label: "In progress", value: 32, color: "var(--blue-500)" },
+                { label: "Pending", value: 22, color: "#b9cdf5" },
+                { label: "Delayed", value: 12, color: "var(--red-600)" },
+              ]} />
+              <div className="legend flex-wrap justify-content-center">
+                <span><i style={{ background: "var(--blue-600)" }} />Fulfilled</span>
+                <span><i style={{ background: "var(--blue-500)" }} />In progress</span>
+                <span><i style={{ background: "#b9cdf5" }} />Pending</span>
+                <span><i style={{ background: "var(--red-600)" }} />Delayed</span>
+              </div>
+            </div>
+          </Panel>
         </Col>
       </Row>
 
-      {/* Row 2: Filtering Toolbar */}
-      <DenseToolbar onSearch={(query) => console.log("Searching:", query)} />
+      <DenseToolbar onSearch={setQ} onWarehouse={setWh} onStatus={setStatus} onExport={exportCsv} onPrint={() => window.print()} />
 
-      {/* Row 3: High-Density Table with mini side panel */}
-      <Row className="g-2">
-        <Col lg={9}>
-          <DenseTable data={DUMMY_ORDERS} />
+      <Row className="g-3">
+        <Col xl={9}>
+          <DataTable columns={COLUMNS} rows={filtered} pageSize={8}
+            onBulkDelete={(ids) => setOrders((o) => o.filter((r) => !ids.includes(r.id)))} />
         </Col>
-
-        {/* Dense Side Panel for ERP Insights / Quick Form */}
-        <Col lg={3}>
-          <Card className="erp-card mb-2">
-            <CardHeader>Warehouse Capacity</CardHeader>
-            <CardBody className="p-2">
-              <div className="mb-2">
-                <div className="d-flex justify-content-between text-muted" style={{ fontSize: "0.7rem" }}>
-                  <span>WH-East 01</span>
-                  <span>88%</span>
+        <Col xl={3}>
+          <div className="d-flex flex-column gap-3">
+            <Panel title="Warehouse capacity">
+              {[["WH-East 01", 88, "var(--red-600)"], ["WH-West 02", 64, "var(--blue-500)"], ["WH-Central 04", 42, "var(--blue-600)"]].map(([n, v, c]) => (
+                <div key={n} className="mb-3 last-mb-0">
+                  <div className="d-flex justify-content-between mb-1" style={{ fontSize: ".74rem" }}>
+                    <span className="fw-semibold">{n}</span><span className="num text-secondary">{v}%</span>
+                  </div>
+                  <div className="meter"><span style={{ width: `${v}%`, background: c }} /></div>
                 </div>
-                <div className="progress" style={{ height: 4 }}>
-                  <div className="progress-bar bg-warning" style={{ width: "88%" }} />
+              ))}
+              <small className="text-secondary">WH-East 01 is near its limit. Consider rerouting inbound.</small>
+            </Panel>
+            <Panel title="Recent activity" bodyClassName="px-3 py-1">
+              {FEED.map((f, i) => (
+                <div className="feed-item" key={i}>
+                  <span className="feed-dot" style={{ background: f.c }} />
+                  <div>{f.t}<time>{f.when}</time></div>
                 </div>
-              </div>
-
-              <div>
-                <div className="d-flex justify-content-between text-muted" style={{ fontSize: "0.7rem" }}>
-                  <span>WH-Central 04</span>
-                  <span>42%</span>
-                </div>
-                <div className="progress" style={{ height: 4 }}>
-                  <div className="progress-bar bg-success" style={{ width: "42%" }} />
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-
-          <Card className="erp-card">
-            <CardHeader>Quick Audit Log</CardHeader>
-            <CardBody className="p-2" style={{ maxHeight: 220, overflowY: "auto" }}>
-              <div className="text-secondary pb-1 border-bottom mb-1" style={{ fontSize: "0.68rem" }}>
-                <strong>PO-90218</strong> received by WH-01 <br />
-                <span className="text-muted">12m ago</span>
-              </div>
-              <div className="text-secondary pb-1 border-bottom mb-1" style={{ fontSize: "0.68rem" }}>
-                <strong>PO-90216</strong> status marked Delayed <br />
-                <span className="text-muted">34m ago</span>
-              </div>
-              <div className="text-secondary" style={{ fontSize: "0.68rem" }}>
-                <strong>SKU-1029</strong> re-ordered (+500 qty) <br />
-                <span className="text-muted">1h ago</span>
-              </div>
-            </CardBody>
-          </Card>
+              ))}
+            </Panel>
+          </div>
         </Col>
       </Row>
-    </Container>
+    </>
   );
 }

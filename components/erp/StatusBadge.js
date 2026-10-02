@@ -1,28 +1,12 @@
-"use client";
-import { Badge } from "reactstrap";
-
-const STATUS_VARIANTS = {
-  fulfilled: { color: "success", text: "Fulfilled" },
-  pending: { color: "warning", text: "Pending" },
-  delayed: { color: "danger", text: "Delayed" },
-  draft: { color: "secondary", text: "Draft" },
-  in_progress: { color: "info", text: "In Progress" },
+const VARIANTS = {
+  fulfilled: { tone: "success", text: "Fulfilled" },
+  pending: { tone: "warning", text: "Pending" },
+  delayed: { tone: "danger", text: "Delayed" },
+  draft: { tone: "neutral", text: "Draft" },
+  in_progress: { tone: "info", text: "In progress" },
 };
 
 export default function StatusBadge({ status }) {
-  const config = STATUS_VARIANTS[status?.toLowerCase()] || { color: "dark", text: status };
-
-  return (
-    <Badge
-      color={config.color}
-      pill
-      style={{
-        fontSize: "0.65rem",
-        padding: "0.2em 0.55em",
-        fontWeight: 500,
-      }}
-    >
-      {config.text}
-    </Badge>
-  );
+  const v = VARIANTS[status?.toLowerCase()] || { tone: "neutral", text: status };
+  return <span className={`status ${v.tone}`}>{v.text}</span>;
 }
