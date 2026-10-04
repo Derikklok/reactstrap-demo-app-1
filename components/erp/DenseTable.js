@@ -31,12 +31,22 @@ export default function DenseTable({ data = [] }) {
               <td>{row.supplier}</td>
               <td>{row.items}</td>
               <td className="fw-medium">${row.amount.toLocaleString()}</td>
-              <td><span className="badge bg-light text-dark border font-monospace">{row.warehouse}</span></td>
+              <td>
+                <span className="badge bg-light text-dark border font-monospace">
+                  {row.warehouse}
+                </span>
+              </td>
               <td className="text-secondary">{row.date}</td>
-              <td><StatusBadge status={row.status} /></td>
+              <td>
+                <StatusBadge status={row.status} />
+              </td>
               <td className="text-end">
-                <Button color="light" className="btn-xs border me-1">Edit</Button>
-                <Button color="outline-danger" className="btn-xs">Void</Button>
+                <Button color="light" className="btn-xs border me-1">
+                  Edit
+                </Button>
+                <Button color="outline-danger" className="btn-xs">
+                  Void
+                </Button>
               </td>
             </tr>
           ))}

@@ -67,7 +67,7 @@ export default function DataTable({
   const colSpan = cols.length + (selectable ? 1 : 0);
 
   return (
-    <div className={cx("erp-card", className)} style={{ overflow: "hidden" }} {...rest}>
+    <div className={cx("erp-card", className)} style={{ overflow: "visible" }} {...rest}>
       {selectable && activeSel.length > 0 && (
         <div className="bulk-bar" role="status">
           {activeSel.length} selected

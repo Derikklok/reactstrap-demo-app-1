@@ -2,9 +2,23 @@ import Icon from "./Icon";
 import { Sparkline } from "./Charts";
 
 /** tone: "blue" | "red" | "green" | "amber"; trend "up"/"down"; good = whether that direction is desirable */
-const ACCENT = { blue: "var(--blue-600)", red: "var(--red-600)", green: "var(--green-600)", amber: "var(--amber-600)" };
+const ACCENT = {
+  blue: "var(--blue-600)",
+  red: "var(--red-600)",
+  green: "var(--green-600)",
+  amber: "var(--amber-600)",
+};
 
-export default function MetricCard({ label, value, subtext, trend, trendValue, good = true, tone = "blue", spark }) {
+export default function MetricCard({
+  label,
+  value,
+  subtext,
+  trend,
+  trendValue,
+  good = true,
+  tone = "blue",
+  spark,
+}) {
   const sentiment = good ? "good" : "bad";
   return (
     <div className="erp-card metric" style={{ "--accent": ACCENT[tone] }}>
@@ -12,7 +26,12 @@ export default function MetricCard({ label, value, subtext, trend, trendValue, g
         <span className="metric-label">{label}</span>
         {trendValue && (
           <span className={`delta ${sentiment}`}>
-            <Icon name={trend === "up" ? "up" : "down"} size={12} stroke={2.6} />{trendValue}
+            <Icon
+              name={trend === "up" ? "up" : "down"}
+              size={12}
+              stroke={2.6}
+            />
+            {trendValue}
           </span>
         )}
       </div>

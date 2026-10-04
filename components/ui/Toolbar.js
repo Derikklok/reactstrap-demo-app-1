@@ -4,7 +4,10 @@ import { cx } from "./cx";
 export default function Toolbar({ left, right, children, className }) {
   return (
     <div className={cx("ui-toolbar erp-card", className)}>
-      <div className="l">{left}{children}</div>
+      <div className="l">
+        {left}
+        {children}
+      </div>
       {right && <div className="r">{right}</div>}
     </div>
   );

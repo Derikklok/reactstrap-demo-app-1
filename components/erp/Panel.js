@@ -1,5 +1,12 @@
 /** Standard card with title/subtitle/actions header */
-export default function Panel({ title, subtitle, actions, children, bodyClassName = "erp-card-body", className = "" }) {
+export default function Panel({
+  title,
+  subtitle,
+  actions,
+  children,
+  bodyClassName = "erp-card-body",
+  className = "",
+}) {
   return (
     <section className={`erp-card ${className}`}>
       <div className="erp-card-header">

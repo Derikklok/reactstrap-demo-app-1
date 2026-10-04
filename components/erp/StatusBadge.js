@@ -7,6 +7,9 @@ const VARIANTS = {
 };
 
 export default function StatusBadge({ status }) {
-  const v = VARIANTS[status?.toLowerCase()] || { tone: "neutral", text: status };
+  const v = VARIANTS[status?.toLowerCase()] || {
+    tone: "neutral",
+    text: status,
+  };
   return <span className={`status ${v.tone}`}>{v.text}</span>;
 }

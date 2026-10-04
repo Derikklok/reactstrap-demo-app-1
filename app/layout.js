@@ -4,8 +4,16 @@ import "./ui.css";
 import AppShell from "@/components/erp/AppShell";
 import { ToastProvider } from "@/components/ui/Toast";
 
-const ui = Manrope({ variable: "--font-ui", subsets: ["latin"], display: "swap" });
-const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"], display: "swap" });
+const ui = Manrope({
+  variable: "--font-ui",
+  subsets: ["latin"],
+  display: "swap",
+});
+const mono = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const metadata = {
   title: "Meridian ERP",
