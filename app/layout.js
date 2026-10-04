@@ -1,6 +1,8 @@
 import { Manrope, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import "./ui.css";
 import AppShell from "@/components/erp/AppShell";
+import { ToastProvider } from "@/components/ui/Toast";
 
 const ui = Manrope({ variable: "--font-ui", subsets: ["latin"], display: "swap" });
 const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"], display: "swap" });
@@ -12,9 +14,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${ui.variable} ${mono.variable}`} data-scroll-behavior="smooth">
+    <html lang="en" className={`${ui.variable} ${mono.variable}`}>
       <body>
-        <AppShell>{children}</AppShell>
+        <ToastProvider>
+          <AppShell>{children}</AppShell>
+        </ToastProvider>
       </body>
     </html>
   );
